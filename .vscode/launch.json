@@ -10,6 +10,17 @@
   ],
   "configurations": [
     {
+        "name": "Test",
+        "type": "node",
+        "request": "launch",      
+        "cwd": "${workspaceFolder}",
+        "program": "${workspaceFolder}/test1.js",
+        "skipFiles": [
+            "<node_internals>/**"
+        ],
+        "args": [".", "--remote-debugging-port=9222"]
+
+    },{
         "name": "Electron Main",
         "program": "${workspaceFolder}/main.js",
         "request": "launch",

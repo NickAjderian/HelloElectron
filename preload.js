@@ -1,5 +1,6 @@
-const { contextBridge, ipcRenderer } = require('electron');
-const os = require('os');
+import { contextBridge, ipcRenderer } from 'electron';
+import os from 'os';
+
 let userInfo = os.userInfo();
 
 // const MyService = require('./myservice.js');
@@ -25,17 +26,13 @@ contextBridge.exposeInMainWorld('versions', {
 });
 
 contextBridge.exposeInMainWorld('curses', {curse1: 'damn and blast'});
-//contextBridge.exposeInMainWorld('GetTime', myService.GetTime.bind(myService));
 
 contextBridge.exposeInMainWorld('electronAPI', {
     getTime: () => {
-      try{
-        console.log(`ipcRenderer.invoke('api:getTime') being called: it's a ${typeof ipcRenderer.invoke}`);
-        ipcRenderer.invoke('api:getTime')
-      }catch(err){
-        console.log(`ipcRenderer.invoke('api:getTime') error: ${err}`);
-      }
-}
+      console.log(`ipcRenderer.invoke('api:getTime') being called: it's a ${typeof ipcRenderer.invoke}`);
+      return ipcRenderer.invoke('api:getTime'); // This returns a Promise that resolves with the result from the main process
+    },
+    getProducts: () => ipcRenderer.invoke('api:getProducts')
 }
 );
 

@@ -16,13 +16,16 @@
   },
   "license": "ISC",
   "author": "nick",
-  "type": "commonjs",
+  "type": "module",
   "main": "main.js",
   "scripts": {
-    "test": "test",
+    "test": "node test",
     "start": "electron ."
   },
   "devDependencies": {
     "electron": "^44.3.0"
+  },
+  "dependencies": {
+    "tedious": "^20.0.0"
   }
 }

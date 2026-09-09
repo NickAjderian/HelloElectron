@@ -1,8 +1,11 @@
 console.log('hello from nicks first electron app');
-const MyService = require('./myservice.js');
+import MyService from './MyService.js';
 
-const { app, BrowserWindow, ipcMain } = require('electron');
-const path = require('path');
+import { app, BrowserWindow, ipcMain } from 'electron';
+import path from 'path';
+import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
+const __dirname = path.dirname(__filename); // get the name of the directory
 
 //monkey patch ipcMain.emit to log all incoming events
 
@@ -69,14 +72,18 @@ const createWindow = () => {
   win.loadFile('index.html')
 }
 
-async function getTime(event, request) {
-  console.log(`getTime() called with request: ${request}`);
-    return await MyService.GetTime();
+function getTime(event, request) {
+  return MyService.GetTime();
+}
+
+function getProducts() {
+  return MyService.GetProducts();
 }
 
 app.whenReady().then(() => {
     ipcMain.handle('api:getTime', getTime);
-    ipcMain.on('api:getTime', getTime);
+    ipcMain.handle('api:getProducts', getProducts);
+    //ipcMain.on('api:getTime', getTime);
     createWindow()
 })
 

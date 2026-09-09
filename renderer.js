@@ -27,13 +27,16 @@ if(typeof curses === 'undefined') {
 //     info += `<br/>MyService - ${GetTime() || 'no time found'}`;
 // }   
 
-window.setTimeout(() => {
+window.setTimeout(async () => {
     console.log(`window.electronAPI.getTime() being called: it's a ${typeof window.electronAPI.getTime} and window.electronAPI is a ${typeof window.electronAPI}`);
     console.log(`window.electronAPI.getTime() is ${window.electronAPI.getTime === undefined ? 'undefined' : 'defined'}`);
-    window.electronAPI.getTime().then(result => {
-        info += `<br/>MyService - ${result || 'no time found'}`;
-        information.innerHTML = info;
-    });
+
+    const result = await window.electronAPI.getTime();
+
+    console.log(`window.electronAPI.getTime() returned: ${result}`);
+    info += `<br/>MyService - ${result || 'no time found'}`;
+    information.innerHTML = info;
+
     // var myTime = await window.electronAPI.getTime();
     // info += `<br/>MyService - ${result || 'no time found'}`;
     // information.innerHTML = info;
