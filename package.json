@@ -1,0 +1,27 @@
+{
+  "name": "helloelectron",
+  "version": "1.0.0",
+  "description": "my first electron app",
+  "keywords": [
+    "electron",
+    "javascript"
+  ],
+  "homepage": "https://github.com/NickAjderian/HelloElectron#readme",
+  "bugs": {
+    "url": "https://github.com/NickAjderian/HelloElectron/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NickAjderian/HelloElectron.git"
+  },
+  "license": "ISC",
+  "author": "nick",
+  "type": "commonjs",
+  "main": "main.js",
+  "scripts": {
+    "test": "test"
+  },
+  "devDependencies": {
+    "electron": "^44.3.0"
+  }
+}
