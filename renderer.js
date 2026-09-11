@@ -1,4 +1,5 @@
 const information = document.getElementById('info');
+
 //alert('hello from renderer.js');
 
 let info = '';
@@ -25,7 +26,13 @@ if(typeof curses === 'undefined') {
 //     info += `<br/>MyService - undefined`;
 // }else{
 //     info += `<br/>MyService - ${GetTime() || 'no time found'}`;
-// }   
+
+const sendCustomMessage = () => {
+    const inputElement = document.getElementById('input');
+    const message = inputElement.value;
+    window.electronAPI.sendMessage(message);
+};       
+
 
 window.setTimeout(async () => {
     console.log(`window.electronAPI.getTime() being called: it's a ${typeof window.electronAPI.getTime} and window.electronAPI is a ${typeof window.electronAPI}`);
@@ -37,10 +44,12 @@ window.setTimeout(async () => {
     info += `<br/>MyService - ${result || 'no time found'}`;
     information.innerHTML = info;
 
-    // var myTime = await window.electronAPI.getTime();
-    // info += `<br/>MyService - ${result || 'no time found'}`;
-    // information.innerHTML = info;
+    var myProducts = await window.electronAPI.getProducts();
+    info += `<br/>MyProducts - ${JSON.stringify(myProducts) || 'no products found'}`;
+    information.innerHTML = info;
     }
 , 10000);
+
+
 
 information.innerHTML = info;

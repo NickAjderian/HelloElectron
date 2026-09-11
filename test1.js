@@ -18,3 +18,14 @@ MyService.GetProducts().then(products => {
 }   
 );
 
+const win = {
+    webContents: {
+        send: (streamName, product) => {
+            console.log(`Received product on stream '${streamName}': ${JSON.stringify(product)}`);
+        }
+    }
+}
+
+MyService.GetProductsIPC(win, 'productStream');
+
+

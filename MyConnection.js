@@ -63,6 +63,44 @@ const connectionConfig = {
   }
 };
 
-const connection = new Connection(connectionConfig);
+var theConnection = new Connection(connectionConfig);
 
-export default connection;
+export default function getConnection() {
+    if (!theConnection) theConnection = new Connection(connectionConfig);
+    switch (theConnection.state) {
+        case 'connecting':
+            console.log('Connection is currently connecting...');
+            return theConnection;
+            break;
+        case 'connected':
+            console.log('Connection is already established.');
+            return theConnection;
+            break;
+        case 'disconnected':
+            console.log('Connection is disconnected. Attempting to reconnect...');
+            theConnection.connect();
+            return theConnection;
+            break;
+        case 'disconnecting':
+            console.log('Connection is currently disconnecting...');
+            theConnection = new Connection(connectionConfig);
+            return theConnection;
+            break;
+        case 'fatal':
+            console.log('Connection is in a fatal state. Attempting to reconnect...');
+            //close the existing connection and create a new one
+            theConnection.close();
+            theConnection = new Connection(connectionConfig);
+            return theConnection;
+            break;
+        default:
+            console.log(`Connection is in an unknown state: ${theConnection.state}. Attempting to reconnect...`);
+            //close the existing connection and create a new one
+            theConnection.close();
+            theConnection = new Connection(connectionConfig);
+            return theConnection;
+            break;  
+    }
+};
+        
+

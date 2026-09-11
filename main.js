@@ -85,6 +85,18 @@ app.whenReady().then(() => {
     ipcMain.handle('api:getProducts', getProducts);
     //ipcMain.on('api:getTime', getTime);
     createWindow()
+
+    // win.on('api:sendMessage', (event, message) => {
+    //     console.log(`Received message from renderer: ${message}`);
+    // });
+
+    // setInterval(() => {
+    //   win.webContents.send('api:clockTime', new Date().toLocaleTimeString());
+    // }, 1000);
+
+
+
+
 })
 
 app.on('window-all-closed', () => {

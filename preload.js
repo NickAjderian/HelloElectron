@@ -3,9 +3,6 @@ import os from 'os';
 
 let userInfo = os.userInfo();
 
-// const MyService = require('./myservice.js');
-// var myService = new MyService.constructor();
-
 //console.log(`we are in preload.js`);
 
 //alert('hello from preload.js');
@@ -32,7 +29,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
       console.log(`ipcRenderer.invoke('api:getTime') being called: it's a ${typeof ipcRenderer.invoke}`);
       return ipcRenderer.invoke('api:getTime'); // This returns a Promise that resolves with the result from the main process
     },
-    getProducts: () => ipcRenderer.invoke('api:getProducts')
+    getProducts: () => ipcRenderer.invoke('api:getProducts'),
+    sendMessage: (message) => ipcRenderer.send('api:sendMessage', message)
+
 }
 );
 
