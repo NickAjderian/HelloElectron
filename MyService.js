@@ -25,14 +25,14 @@ class MyService{
         return new Date().toLocaleTimeString();
     }
 
-    async streamProducts(event){
+    async streamProducts(chunk, finished, error){
 
-        event.sender.send('products-received', 'a product');
-        event.sender.send('products-received', 'a product');
-        event.sender.send('products-received', 'a product');
-        event.sender.send('products-received', 'a product');
-        event.sender.send('products-received', 'a product');
-        event.sender.send('products-complete');
+        for(var i = 1; i<5; ++i){
+            chunk({name: 'product', id: i});
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+        await new Promise(resolve => setTimeout(resolve, 500));
+        finished('complete');
 
         return;
 

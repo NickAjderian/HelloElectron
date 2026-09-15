@@ -32,9 +32,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     getProducts: () => ipcRenderer.invoke('api:getProducts'),
 
 // Pass a standard callback function instead of using an async generator here
-  onStreamUpdate: (onChunk, onComplete, onError) => {
-    ipcRenderer.send('start-stream');
-
+  onStreamUpdate: (onChunk, onComplete, onError, dataType) => {
     // Create a listener function
     const listener = (event, result) => {
       if (result.error) {
@@ -44,12 +42,17 @@ contextBridge.exposeInMainWorld('electronAPI', {
         onComplete();
         ipcRenderer.off('stream-chunk', listener); // Clean up listener
       } else {
-        onChunk(result.data);
+        let data = typeof result.data === 'object' ? JSON.stringify(result.data): result.data ;
+        onChunk(data);
       }
     };
+      ipcRenderer.on('stream-chunk', listener);
+      ipcRenderer.send('start-stream', dataType);      
+    },
 
-    ipcRenderer.on('stream-chunk', listener);
-  },
+    startStreamUpdate: () => {
+      ipcRenderer.send('start-stream');    
+    },
 
     sendCustomMessage: (message) => {
       ipcRenderer.send('api:sendMessage', message);

@@ -1,3 +1,5 @@
+//import { setDefaultResultOrder } from "dns";
+
 const information = document.getElementById('info');
 const streamProductsButton = document.getElementById('streamProducts');
 const sendButton = document.getElementById('send');
@@ -36,22 +38,24 @@ const sendCustomMessage = () => {
     window.electronAPI.sendCustomMessage(message);
 };       
 
-    function runLogStream() {
-        window.electronAPI.onStreamUpdate(
-            // 1. Data chunk received
-            (chunk) => {
-            information.innerHTML += `\n${chunk}`;
-            },
-            // 2. Stream completed successfully
-            () => {
-            console.log('Stream finished!');
-            },
-            // 3. Error occurred
-            (err) => {
-            console.error('Stream failed:', err);
-            }
-        );
-    };
+function runLogStream() {
+    window.electronAPI.onStreamUpdate(
+        // 1. Data chunk received
+        (chunk) => {
+        information.innerHTML += `<br/>${chunk}`;
+        },
+        // 2. Stream completed successfully
+        () => {
+        console.log('Stream finished!');
+        },
+        // 3. Error occurred
+        (err) => {
+        console.error('Stream failed:', err);
+        },
+        'products' //ok this time i want products
+
+    );
+};
 
 
 window.setTimeout(async () => {
@@ -59,7 +63,7 @@ window.setTimeout(async () => {
     console.log(`window.electronAPI.getTime() is ${window.electronAPI.getTime === undefined ? 'undefined' : 'defined'}`);
 
     const result = await window.electronAPI.getTime();
-
+ 
     console.log(`window.electronAPI.getTime() returned: ${result}`);
     info += `<br/>MyService - ${result || 'no time found'}`;
     information.innerHTML = info;
@@ -76,7 +80,13 @@ window.setTimeout(async () => {
             window.electronAPI.sendCustomMessage(msg); 
         });
 
-    streamProductsButton.addEventListener('click', runLogStream());
+    streamProductsButton.addEventListener('click', 
+        ()=> {
+        alert('running Log Stream');
+        runLogStream();
+        //window.electronAPI.startStreamUpdate();
+        }
+    );
 
     }
 
@@ -90,7 +100,7 @@ window.setTimeout(async () => {
     //     information.innerHTML = info;
     // }   
 
-, 3000);
+, 1000);
 
 window.electronAPI.onMyTimer((time) => {
     timerDisplayElement.value = `Clock Time - ${time}`;

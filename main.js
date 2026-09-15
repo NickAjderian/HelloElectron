@@ -77,32 +77,33 @@ function getTime(event, request) {
   return MyService.getTime();
 }
 
-async function* dataStreamGenerator() {
-  const steps = ['Step 1: Initialising', 'Step 2: Processing', 'Step 3: Cleaning up', 'Done!'];
-  for (const step of steps) {
-    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulating delay
-    yield step;
-  }
-}
+// async function* dataStreamGenerator() {
+//   const steps = ['Step 1: Initialising', 'Step 2: Processing', 'Step 3: Cleaning up', 'Done!'];
+//   for (const step of steps) {
+//     await new Promise(resolve => setTimeout(resolve, 1000)); // Simulating delay
+//     yield step;
+//   }
+// }
 
-ipcMain.on('start-stream', async (event) => {
-  try {
-    for await (const chunk of dataStreamGenerator()) {
 
-      // Send each yielded value down to the renderer channel
-      const safeChunk = typeof chunk === 'object' 
-        ? JSON.parse(JSON.stringify(chunk)) 
-        : chunk;
-      console.log(safeChunk);
-      
-      event.reply('stream-chunk', { data: safeChunk, done: false });
-    }
-    // Signal completion
-    event.reply('stream-chunk', { done: true });
-  } catch (error) {
-    event.reply('stream-chunk', { error: error.message, done: true });
-  }
-});
+
+  // try {
+  //   for await (const chunk of MyService.streamProducts()) {
+
+  //     // Send each yielded value down to the renderer channel
+  //     const safeChunk = typeof chunk === 'object' 
+  //       ? JSON.parse(JSON.stringify(chunk)) 
+  //       : chunk;
+  //     console.log(safeChunk);
+
+  //     event.reply('stream-chunk', { data: safeChunk, done: false });
+  //   }
+  //   // Signal completion
+  //   event.reply('stream-chunk', { done: true });
+  // } catch (error) {
+  //   event.reply('stream-chunk', { error: error.message, done: true });
+  // }
+  //});
 
 app.whenReady().then(() => {
     ipcMain.handle('api:getTime', getTime); //getTime is an async function that returns a Promise, so ipcMain.handle will automatically handle the Promise resolution and rejection for you.
@@ -111,12 +112,25 @@ app.whenReady().then(() => {
         console.log(`Received message from renderer: ${message}`);
     });
 
-    //ipcMain.on('api:getTime', getTime);
+    ipcMain.on('start-stream', (event, dataType) => {
+      switch(dataType){
+        case 'products':
+        default:
+        MyService.streamProducts( 
+          (chunk) =>event.reply('stream-chunk', { data: chunk, done: false }),
+          (result)=>event.reply('stream-chunk', { done: true }),
+          (err)=>event.reply('stream-chunk', { error: err.message, done: true })
+      );
+
+      }
+    });
+
+    ipcMain.on('api:getTime', getTime);
     createWindow()
 
-    // win.on('api:sendMessage', (event, message) => {
-    //     console.log(`Received message from renderer: ${message}`);
-    // });
+    win.on('api:sendMessage', (event, message) => {
+        console.log(`Received message from renderer: ${message}`);
+    });
 
     setInterval(() => {
       win.webContents.send('api:myClockTime', new Date().toLocaleTimeString());
