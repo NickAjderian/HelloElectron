@@ -30,7 +30,42 @@ contextBridge.exposeInMainWorld('electronAPI', {
       return ipcRenderer.invoke('api:getTime'); // This returns a Promise that resolves with the result from the main process
     },
     getProducts: () => ipcRenderer.invoke('api:getProducts'),
-    sendMessage: (message) => ipcRenderer.send('api:sendMessage', message)
+
+// Pass a standard callback function instead of using an async generator here
+  onStreamUpdate: (onChunk, onComplete, onError) => {
+    ipcRenderer.send('start-stream');
+
+    // Create a listener function
+    const listener = (event, result) => {
+      if (result.error) {
+        onError(result.error);
+        ipcRenderer.off('stream-chunk', listener); // Clean up listener
+      } else if (result.done) {
+        onComplete();
+        ipcRenderer.off('stream-chunk', listener); // Clean up listener
+      } else {
+        onChunk(result.data);
+      }
+    };
+
+    ipcRenderer.on('stream-chunk', listener);
+  },
+
+    sendCustomMessage: (message) => {
+      ipcRenderer.send('api:sendMessage', message);
+    },
+
+    sendTimer: (callback) => {
+      ipcRenderer.on('api:clockTime', (event, time) => {
+        callback(time);
+      });
+    },
+
+    onMyTimer: (callback) => { ipcRenderer.on('api:myClockTime', (event, time) => {
+        callback(time);
+    })}
+
+
 
 }
 );

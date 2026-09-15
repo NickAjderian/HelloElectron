@@ -67,6 +67,8 @@ var theConnection = new Connection(connectionConfig);
 
 export default function getConnection() {
     if (!theConnection) theConnection = new Connection(connectionConfig);
+    if (theConnection.state.name === 'Initialized')
+        return theConnection;
     switch (theConnection.state) {
         case 'connecting':
             console.log('Connection is currently connecting...');

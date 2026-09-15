@@ -1,4 +1,8 @@
 const information = document.getElementById('info');
+const streamProductsButton = document.getElementById('streamProducts');
+const sendButton = document.getElementById('send');
+const inputElement = window.document.getElementById('input')
+const timerDisplayElement = window.document.getElementById('myTimer');
 
 //alert('hello from renderer.js');
 
@@ -28,10 +32,26 @@ if(typeof curses === 'undefined') {
 //     info += `<br/>MyService - ${GetTime() || 'no time found'}`;
 
 const sendCustomMessage = () => {
-    const inputElement = document.getElementById('input');
     const message = inputElement.value;
-    window.electronAPI.sendMessage(message);
+    window.electronAPI.sendCustomMessage(message);
 };       
+
+    function runLogStream() {
+        window.electronAPI.onStreamUpdate(
+            // 1. Data chunk received
+            (chunk) => {
+            information.innerHTML += `\n${chunk}`;
+            },
+            // 2. Stream completed successfully
+            () => {
+            console.log('Stream finished!');
+            },
+            // 3. Error occurred
+            (err) => {
+            console.error('Stream failed:', err);
+            }
+        );
+    };
 
 
 window.setTimeout(async () => {
@@ -47,9 +67,33 @@ window.setTimeout(async () => {
     var myProducts = await window.electronAPI.getProducts();
     info += `<br/>MyProducts - ${JSON.stringify(myProducts) || 'no products found'}`;
     information.innerHTML = info;
+
+
+    sendButton.addEventListener('click', 
+        () => {
+            let msg = inputElement.value;
+            console.log(`sendCustomMessage called with message: ${msg}`);
+            window.electronAPI.sendCustomMessage(msg); 
+        });
+
+    streamProductsButton.addEventListener('click', runLogStream());
+
     }
-, 10000);
 
 
+
+    
+
+    // window.electronAPI.sendTimer((time) => {
+    //     console.log(`Received time from main process: ${time}`);
+    //     info += `<br/>Clock Time - ${time}`;
+    //     information.innerHTML = info;
+    // }   
+
+, 3000);
+
+window.electronAPI.onMyTimer((time) => {
+    timerDisplayElement.value = `Clock Time - ${time}`;
+});
 
 information.innerHTML = info;

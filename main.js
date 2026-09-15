@@ -56,9 +56,10 @@ const __dirname = path.dirname(__filename); // get the name of the directory
 //   return originalHandle.call(ipcMain, channel, wrappedListener);
 // };
 
+var win;
 
 const createWindow = () => {
-  const win = new BrowserWindow({
+  win = new BrowserWindow({
     width: 400,
     height: 600,
     webPreferences: {
@@ -73,16 +74,43 @@ const createWindow = () => {
 }
 
 function getTime(event, request) {
-  return MyService.GetTime();
+  return MyService.getTime();
 }
 
-function getProducts() {
-  return MyService.GetProducts();
+async function* dataStreamGenerator() {
+  const steps = ['Step 1: Initialising', 'Step 2: Processing', 'Step 3: Cleaning up', 'Done!'];
+  for (const step of steps) {
+    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulating delay
+    yield step;
+  }
 }
+
+ipcMain.on('start-stream', async (event) => {
+  try {
+    for await (const chunk of dataStreamGenerator()) {
+
+      // Send each yielded value down to the renderer channel
+      const safeChunk = typeof chunk === 'object' 
+        ? JSON.parse(JSON.stringify(chunk)) 
+        : chunk;
+      console.log(safeChunk);
+      
+      event.reply('stream-chunk', { data: safeChunk, done: false });
+    }
+    // Signal completion
+    event.reply('stream-chunk', { done: true });
+  } catch (error) {
+    event.reply('stream-chunk', { error: error.message, done: true });
+  }
+});
 
 app.whenReady().then(() => {
-    ipcMain.handle('api:getTime', getTime);
-    ipcMain.handle('api:getProducts', getProducts);
+    ipcMain.handle('api:getTime', getTime); //getTime is an async function that returns a Promise, so ipcMain.handle will automatically handle the Promise resolution and rejection for you.
+    ipcMain.handle('api:getProducts', MyService.getProducts); 
+    ipcMain.on('api:sendMessage', (event, message) => {
+        console.log(`Received message from renderer: ${message}`);
+    });
+
     //ipcMain.on('api:getTime', getTime);
     createWindow()
 
@@ -90,9 +118,9 @@ app.whenReady().then(() => {
     //     console.log(`Received message from renderer: ${message}`);
     // });
 
-    // setInterval(() => {
-    //   win.webContents.send('api:clockTime', new Date().toLocaleTimeString());
-    // }, 1000);
+    setInterval(() => {
+      win.webContents.send('api:myClockTime', new Date().toLocaleTimeString());
+    }, 1000);
 
 
 

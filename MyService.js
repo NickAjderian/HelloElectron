@@ -1,6 +1,8 @@
 import { Connection, Request } from 'tedious';
 import MyConnection from './MyConnection.js';
 
+
+
 class MyService{
     constructor(){
         if(MyService.instance){
@@ -9,20 +11,40 @@ class MyService{
         MyService.instance = this;
         return this;
     }
-    async GetTime(){
+
+        // Instance async generator method
+    async *dataStreamGenerator() {
+        const steps = ['Initialising', 'Processing', 'Cleaning up', 'Done!'];
+        for (const step of steps) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        yield `${this.prefix} -> ${step}`; // Accessing instance state
+        }
+    }
+
+    async getTime(){
         return new Date().toLocaleTimeString();
     }
 
-    async GetProductsIPC(win, streamName) {
+    async streamProducts(event){
+
+        event.sender.send('products-received', 'a product');
+        event.sender.send('products-received', 'a product');
+        event.sender.send('products-received', 'a product');
+        event.sender.send('products-received', 'a product');
+        event.sender.send('products-received', 'a product');
+        event.sender.send('products-complete');
+
+        return;
+
         const connection = MyConnection();
 
-        const query = `select top 10 ProductID, ProductCode, ProductName from Chilli_PEx.dbo.tblProduct where IsInternal=1 order by ProductID desc`;
+        const query = `select top 50 ProductID, ProductCode, ProductName from Chilli_PEx.dbo.tblProduct where IsInternal=1 order by ProductID desc`;
 
-        const products = [];
         let settled = false;
 
         const finish = (error, result) => {
             if (settled) {
+                event.sender.send('products-complete');
                 return;
             }
 
@@ -30,9 +52,11 @@ class MyService{
             connection.close();
 
             if (error) {
-                //reject(error);
+                event.sender.send('products-complete');
+                reject(error);
             } else {
-                //resolve(result);
+                event.sender.send('products-complete');
+                resolve(result);
             }
         };
 
@@ -42,26 +66,30 @@ class MyService{
                 return;
             }
 
-            const request = new Request(query, (requestError) => {
-                finish(requestError, products);
-            });
+        const request = new Request(query, (requestError) => {
+            finish(requestError, products);
+        });
 
-            request.on('row', (columns) => {
-                const product = {};
-                columns.forEach((column) => {
-                    product[column.metadata.colName] = column.value;
-                });
-                win.webContents.send(streamName, product);
+        request.on('row', (columns) => {
+            const product = {};
+            columns.forEach((column) => {
+                product[column.metadata.colName] = column.value;
             });
+            event.sender.send('products-received', product);
+        });
 
-            connection.execSql(request);
+        request.on('doneInProc', () =>{
+            event.sender.send('products-complete');
+        })
+
+        connection.execSql(request);
         });
 
         connection.connect();
-
+        
     }
 
-    async GetProducts(){
+    async getProducts(){
 
         const connection = MyConnection();
 
