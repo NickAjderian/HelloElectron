@@ -2,6 +2,7 @@
 
 const information = document.getElementById('info');
 const streamProductsButton = document.getElementById('streamProducts');
+const streamOrganisationsButton = document.getElementById('streamOrganisations');
 const sendButton = document.getElementById('send');
 const inputElement = window.document.getElementById('input')
 const timerDisplayElement = window.document.getElementById('myTimer');
@@ -38,7 +39,7 @@ const sendCustomMessage = () => {
     window.electronAPI.sendCustomMessage(message);
 };       
 
-function runLogStream() {
+function runLogStream(dataType) {
     window.electronAPI.onStreamUpdate(
         // 1. Data chunk received
         (chunk) => {
@@ -52,7 +53,7 @@ function runLogStream() {
         (err) => {
         console.error('Stream failed:', err);
         },
-        'products' //ok this time i want products
+        dataType 
 
     );
 };
@@ -82,11 +83,15 @@ window.setTimeout(async () => {
 
     streamProductsButton.addEventListener('click', 
         ()=> {
-        alert('running Log Stream');
-        runLogStream();
+        runLogStream('products');
         //window.electronAPI.startStreamUpdate();
         }
     );
+    streamOrganisationsButton.addEventListener('click',
+        ()=> {
+        runLogStream('organisations');
+        //window.electronAPI.startStreamUpdate();
+        })
 
     }
 

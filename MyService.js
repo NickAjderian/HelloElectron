@@ -26,48 +26,54 @@ class MyService{
     }
 
     async streamProducts(chunk, finished, error){
+        return this.streamData(chunk, finished, error, `select top 5 ProductID, ProductCode from Chilli_PEx.dbo.tblProduct where IsInternal=1 order by ProductID desc`)
+    }
+    async streamOrganisations(chunk, finished, error){
+        return this.streamData(chunk,finished,error,'select top 5 organisationid, organisation from tblOrganisation');
+    }
 
-        for(var i = 1; i<5; ++i){
-            chunk({name: 'product', id: i});
-            await new Promise(resolve => setTimeout(resolve, 500));
-        }
-        await new Promise(resolve => setTimeout(resolve, 500));
-        finished('complete');
+    async streamData(chunk, finished, error, query){
 
-        return;
+        // for(var i = 1; i<5; ++i){
+        //     chunk({name: 'product', id: i});
+        //     await new Promise(resolve => setTimeout(resolve, 500));
+        // }
+        // await new Promise(resolve => setTimeout(resolve, 500));
+        // finished('complete');
+
+        //return;
 
         const connection = MyConnection();
-
-        const query = `select top 50 ProductID, ProductCode, ProductName from Chilli_PEx.dbo.tblProduct where IsInternal=1 order by ProductID desc`;
 
         let settled = false;
 
         const finish = (error, result) => {
             if (settled) {
-                event.sender.send('products-complete');
-                return;
+                finished('complete');
+            }else{
+                error(error);
             }
 
             settled = true;
             connection.close();
 
             if (error) {
-                event.sender.send('products-complete');
+                finshed('complete');
                 reject(error);
             } else {
-                event.sender.send('products-complete');
+                finished('complete');
                 resolve(result);
             }
         };
 
         connection.on('connect', (error) => {
             if (error) {
-                finish(error);
+                finished(error);
                 return;
             }
 
         const request = new Request(query, (requestError) => {
-            finish(requestError, products);
+            finished(requestError);
         });
 
         request.on('row', (columns) => {
@@ -75,11 +81,11 @@ class MyService{
             columns.forEach((column) => {
                 product[column.metadata.colName] = column.value;
             });
-            event.sender.send('products-received', product);
+            chunk(product);
         });
 
         request.on('doneInProc', () =>{
-            event.sender.send('products-complete');
+            finished('complete');
         })
 
         connection.execSql(request);

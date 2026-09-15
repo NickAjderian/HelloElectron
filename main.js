@@ -114,6 +114,13 @@ app.whenReady().then(() => {
 
     ipcMain.on('start-stream', (event, dataType) => {
       switch(dataType){
+        case 'organisations':
+        MyService.streamOrganisations( 
+          (chunk) =>event.reply('stream-chunk', { data: chunk, done: false }),
+          (result)=>event.reply('stream-chunk', { done: true }),
+          (err)=>event.reply('stream-chunk', { error: err.message, done: true })
+      );
+
         case 'products':
         default:
         MyService.streamProducts( 

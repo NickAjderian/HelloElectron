@@ -67,42 +67,26 @@ var theConnection = new Connection(connectionConfig);
 
 export default function getConnection() {
     if (!theConnection) theConnection = new Connection(connectionConfig);
-    if (theConnection.state.name === 'Initialized')
-        return theConnection;
-    switch (theConnection.state) {
-        case 'connecting':
-            console.log('Connection is currently connecting...');
-            return theConnection;
-            break;
-        case 'connected':
-            console.log('Connection is already established.');
-            return theConnection;
-            break;
-        case 'disconnected':
-            console.log('Connection is disconnected. Attempting to reconnect...');
-            theConnection.connect();
-            return theConnection;
-            break;
-        case 'disconnecting':
-            console.log('Connection is currently disconnecting...');
-            theConnection = new Connection(connectionConfig);
-            return theConnection;
-            break;
-        case 'fatal':
-            console.log('Connection is in a fatal state. Attempting to reconnect...');
-            //close the existing connection and create a new one
-            theConnection.close();
-            theConnection = new Connection(connectionConfig);
-            return theConnection;
-            break;
-        default:
-            console.log(`Connection is in an unknown state: ${theConnection.state}. Attempting to reconnect...`);
-            //close the existing connection and create a new one
-            theConnection.close();
-            theConnection = new Connection(connectionConfig);
-            return theConnection;
-            break;  
+
+    const currentState = theConnection?.state?.name;
+
+    // 1. Check if it's currently establishing a connection
+    if (currentState === 'Connecting' || currentState?.startsWith('SentLogin')) {
+        console.log('⚠️ Connection is busy establishing. Please queue this request.');
     }
+
+    // 2. Check if it's ready to run a query
+    if (currentState !== 'LoggedIn') {
+        console.error(`❌ Cannot execute query. Connection is in state: ${currentState}. Opening a new connection`);
+        theConnection = new Connection(connectionConfig);
+    }
+
+    // 3. Safe to proceed
+    console.log('🚀 Connection is ready. Executing query...');
+    // connection.execSql(new Request(...));
+
+
+    return theConnection;
 };
         
 
