@@ -106,29 +106,54 @@ function getTime(event, request) {
   //});
 
 app.whenReady().then(() => {
+    MyService.init();
+
     ipcMain.handle('api:getTime', getTime); //getTime is an async function that returns a Promise, so ipcMain.handle will automatically handle the Promise resolution and rejection for you.
-    ipcMain.handle('api:getProducts', MyService.getProducts); 
-    ipcMain.on('api:sendMessage', (event, message) => {
-        console.log(`Received message from renderer: ${message}`);
+    // ipcMain.on('api:sendMessage', (event, message) => {
+    //     console.log(`Received message from renderer: ${message}`);
+    // });
+
+    ipcMain.handle('api:stream-products', ()=>{
+      console.log('wtf is going on');
+    })
+
+    ipcMain.on('api:stream-products', (event, datatype)=>{
+      MyService.executeSql('select top 10 ProductID, ProductCode from tblProduct',
+        [],
+        (chunk) =>event.reply('api:stream-products', { data: chunk, done: false }),
+        (result)=>event.reply('api:stream-products', { done: true }),
+        (err)=>event.reply('api:stream-products', { error: err.message, done: true })
+      )
+
     });
 
-    ipcMain.on('start-stream', (event, dataType) => {
+    ipcMain.on('api:stream-data', (event, dataType)=>{
       switch(dataType){
         case 'organisations':
-        MyService.streamOrganisations( 
-          (chunk) =>event.reply('stream-chunk', { data: chunk, done: false }),
-          (result)=>event.reply('stream-chunk', { done: true }),
-          (err)=>event.reply('stream-chunk', { error: err.message, done: true })
-      );
+          MyService.executeSql('select top 10 OrganisationID, Organisation from tblOrganisation',
+            [],
+            (chunk) =>event.reply('api:stream-data', { data: chunk, done: false }),
+            (result)=>event.reply('api:stream-data', { done: true }),
+            (err)=>event.reply('api:stream-data', { error: err.message, done: true })
+          )
+          break;
+      }
+    })
+
+    ipcMain.on('start-stream', async (event, dataType) => {
+      await MyService.init();
+
+      switch(dataType){
+        case 'organisations':
+          break;
 
         case 'products':
         default:
-        MyService.streamProducts( 
-          (chunk) =>event.reply('stream-chunk', { data: chunk, done: false }),
-          (result)=>event.reply('stream-chunk', { done: true }),
-          (err)=>event.reply('stream-chunk', { error: err.message, done: true })
-      );
-
+          MyService.streamProducts(
+            chunk => event.reply('stream-chunk', { data: chunk, done: false }),
+            () => event.reply('stream-chunk', { done: true }),
+            err => event.reply('stream-chunk', { error: err.message, done: true })
+          );
       }
     });
 

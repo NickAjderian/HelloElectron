@@ -39,22 +39,13 @@ const sendCustomMessage = () => {
     window.electronAPI.sendCustomMessage(message);
 };       
 
-function runLogStream(dataType) {
-    window.electronAPI.onStreamUpdate(
-        // 1. Data chunk received
-        (chunk) => {
-        information.innerHTML += `<br/>${chunk}`;
+function runLogStream() {
+    window.electronAPI.streamProducts(
+        chunk => {
+            information.innerHTML += `<br/>${JSON.stringify(chunk)}`;
         },
-        // 2. Stream completed successfully
-        () => {
-        console.log('Stream finished!');
-        },
-        // 3. Error occurred
-        (err) => {
-        console.error('Stream failed:', err);
-        },
-        dataType 
-
+        () => console.log('Product stream finished.'),
+        error => console.error('Product stream failed:', error)
     );
 };
 
@@ -69,42 +60,23 @@ window.setTimeout(async () => {
     info += `<br/>MyService - ${result || 'no time found'}`;
     information.innerHTML = info;
 
-    var myProducts = await window.electronAPI.getProducts();
-    info += `<br/>MyProducts - ${JSON.stringify(myProducts) || 'no products found'}`;
-    information.innerHTML = info;
-
-
-    sendButton.addEventListener('click', 
-        () => {
-            let msg = inputElement.value;
-            console.log(`sendCustomMessage called with message: ${msg}`);
-            window.electronAPI.sendCustomMessage(msg); 
-        });
 
     streamProductsButton.addEventListener('click', 
         ()=> {
-        runLogStream('products');
-        //window.electronAPI.startStreamUpdate();
+            window.electronAPI.streamProducts(
+                product => {
+                    console.log("Product:", product);
+                    info += `<br/>${JSON.stringify(product)}`;
+                },
+                () => {
+                    console.log("Stream complete")
+                    information.innerHTML = info;
+                },
+                error => console.error("Stream failed:", error)
+                );
         }
-    );
-    streamOrganisationsButton.addEventListener('click',
-        ()=> {
-        runLogStream('organisations');
-        //window.electronAPI.startStreamUpdate();
-        })
-
+        )
     }
-
-
-
-    
-
-    // window.electronAPI.sendTimer((time) => {
-    //     console.log(`Received time from main process: ${time}`);
-    //     info += `<br/>Clock Time - ${time}`;
-    //     information.innerHTML = info;
-    // }   
-
 , 1000);
 
 window.electronAPI.onMyTimer((time) => {

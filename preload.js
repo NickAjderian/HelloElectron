@@ -24,12 +24,44 @@ contextBridge.exposeInMainWorld('versions', {
 
 contextBridge.exposeInMainWorld('curses', {curse1: 'damn and blast'});
 
-contextBridge.exposeInMainWorld('electronAPI', {
+contextBridge.exposeInMainWorld(
+  'electronAPI', 
+  {
     getTime: () => {
       console.log(`ipcRenderer.invoke('api:getTime') being called: it's a ${typeof ipcRenderer.invoke}`);
       return ipcRenderer.invoke('api:getTime'); // This returns a Promise that resolves with the result from the main process
     },
-    getProducts: () => ipcRenderer.invoke('api:getProducts'),
+    streamProducts: (onChunk, onComplete, onError) => {
+        const listener = (event, result) => {
+          if (result.error) {
+            onError?.(result.error);
+            ipcRenderer.off('stream-chunk', listener);
+          } else if (result.done) {
+            onComplete?.();
+            ipcRenderer.off('stream-chunk', listener);
+          } else {
+            onChunk?.(result.data);
+          }
+        };
+
+        ipcRenderer.on('api:stream-products', listener);
+        ipcRenderer.send('api:stream-products', 'products');
+    },
+    streamData: (onChunk, onComplete, onError, dataType) => {
+      const listener = (event, result) => {
+        if(result.error){
+          onError?.(result.error);
+          ipcRenderer.off('api:stream-data', listener);
+        }else if (result.done) {
+          onComplete?.();
+          ipcRenderer.off('api:stream-data', listener);
+        }else{
+          onChunk?.(result.data);
+        }
+      }
+      ipcRenderer.on('api:stream-data', listener);
+      ipcRenderer.send('api:stream-data', 'dataType');
+    },
 
 // Pass a standard callback function instead of using an async generator here
   onStreamUpdate: (onChunk, onComplete, onError, dataType) => {

@@ -47,6 +47,8 @@ class MyService {
     }
   }
 
+  getTime(){}
+
   /**
    * Guarded method to fetch products from the real database.
    */
@@ -77,6 +79,16 @@ class MyService {
       this.pool = null;
       console.log('🔌 SQL Server pool connections closed cleanly.');
     }
+  }
+
+  async streamProducts(chunk, finish, error) {
+    return this.executeSql(
+      'SELECT TOP 10 ProductID, ProductCode, ProductName FROM tblProduct WHERE IsInternal = 1 ORDER BY ProductID DESC',
+      [],
+      chunk,
+      finish,
+      error
+    );
   }
 
   async executeScalar(sqlText, params = []) {
