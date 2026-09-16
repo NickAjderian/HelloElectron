@@ -5,27 +5,49 @@
 
 // console.log(`config.servername is ${config.servername}`);
 
-import ConnectionConfig from './MyConnection.js';
+// import ConnectionConfig from './MyConnection.js';
 
-console.log(`ConnectionConfig is ${JSON.stringify(ConnectionConfig)}`);
+// console.log(`ConnectionConfig is ${JSON.stringify(ConnectionConfig)}`);
 
-import MyService from './MyService.js';
+// dbService.GetProducts().then(products => {
+//     console.log(`Products: ${JSON.stringify(products)}`);
+// }).catch(error => {
+//     console.error(`Error fetching products: ${error}`);
+// }   
+// );
 
-MyService.GetProducts().then(products => {
-    console.log(`Products: ${JSON.stringify(products)}`);
-}).catch(error => {
-    console.error(`Error fetching products: ${error}`);
-}   
-);
+// const win = {
+//     webContents: {
+//         send: (streamName, product) => {
+//             console.log(`Received product on stream '${streamName}': ${JSON.stringify(product)}`);
+//         }
+//     }
+// }
 
-const win = {
-    webContents: {
-        send: (streamName, product) => {
-            console.log(`Received product on stream '${streamName}': ${JSON.stringify(product)}`);
-        }
-    }
+//dbService.GetProductsIPC(win, 'productStream');
+
+// test.js
+import assert from 'assert';
+import myService from './MyService';
+
+async function run() {
+  try {
+    // 1. Explicitly initialize and await the connection pool setup
+    await myService.init();
+
+    // 2. Safely call the service queries now that the database environment is live
+    const products = await myService.GetProducts();
+    console.log('Real DB Products:', products);
+    assert.ok(Array.isArray(products));
+    
+    console.log('🎉 Integration tests complete.');
+  } catch (error) {
+    console.error('❌ Test runner caught an exception:', error.message);
+    process.exit(1);
+  } finally {
+    // 3. Make sure to tear down connection resources so Node exits gracefully
+    await myService.close();
+  }
 }
 
-MyService.GetProductsIPC(win, 'productStream');
-
-
+run();

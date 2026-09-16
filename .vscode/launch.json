@@ -21,6 +21,17 @@
         "args": [".", "--remote-debugging-port=9222"]
 
     },{
+        "name": "Test2",
+        "type": "node",
+        "request": "launch",      
+        "cwd": "${workspaceFolder}",
+        "program": "${workspaceFolder}/test2.js",
+        "skipFiles": [
+            "<node_internals>/**"
+        ],
+        "args": [".", "--remote-debugging-port=9222"]
+
+    },{
         "name": "Electron Main",
         "program": "${workspaceFolder}/main.js",
         "request": "launch",

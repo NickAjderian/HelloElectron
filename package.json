@@ -26,6 +26,7 @@
     "electron": "^44.3.0"
   },
   "dependencies": {
+    "mssql": "^12.7.2",
     "tedious": "^20.0.0"
   }
 }
