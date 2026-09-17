@@ -20,13 +20,30 @@
   "main": "main.js",
   "scripts": {
     "test": "node test",
-    "start": "electron ."
+    "start": "electron .",
+    "build": "electron-builder --dir",
+    "dist": "electron-builder"
   },
   "devDependencies": {
-    "electron": "^44.3.0"
+    "electron": "^44.3.0",
+    "electron-builder": "^26.15.3"
   },
   "dependencies": {
     "mssql": "^12.7.2",
     "tedious": "^20.0.0"
+  },
+  "build": {
+    "appId": "com.example.helloelectron",
+    "productName": "HelloElectron",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*",
+      "!local.settings.json"
+    ],
+    "win": {
+      "target": "nsis"
+    }
   }
 }

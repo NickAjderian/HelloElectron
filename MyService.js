@@ -1,26 +1,36 @@
 // MyService.js
+import { existsSync, readFileSync } from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import sql from 'mssql';
 
-const connectionConfig = {
-  "server": "localhost",
-  "database": "Chilli_PEx",
-  "authentication": {
-    "type": "default",
-    "options": {
-      "userName": "ChilliBarcodeUK",
-      "password": "StrawberryFieldsForever123!"
-    }
-  },
-  "options": {
-    "encrypt": false,
-    "trustServerCertificate": true
+const moduleDirectory = path.dirname(fileURLToPath(import.meta.url));
+
+function loadConnectionConfig() {
+  const settingsPath = process.env.LOCAL_SETTINGS_PATH || [
+    path.join(process.cwd(), 'local.settings.json'),
+    path.join(moduleDirectory, 'local.settings.json'),
+    process.resourcesPath && path.join(process.resourcesPath, 'local.settings.json'),
+    !process.defaultApp && path.join(path.dirname(process.execPath), 'local.settings.json')
+  ].find(candidate => candidate && existsSync(candidate));
+
+  if (!settingsPath) {
+    throw new Error(
+      'Cannot find local.settings.json. Set LOCAL_SETTINGS_PATH or place it next to the application resources.'
+    );
   }
-};
+
+  try {
+    return JSON.parse(readFileSync(settingsPath, 'utf8'));
+  } catch (error) {
+    throw new Error(`Cannot load ${settingsPath}: ${error.message}`);
+  }
+}
 
 class MyService {
   constructor() {
     this.pool = null; // Holds the active connection pool reference
-    this.poolConfig = connectionConfig;
+    this.poolConfig = null;
 
   }
 
@@ -33,6 +43,7 @@ class MyService {
     if (this.pool) return this; 
 
     try {
+      this.poolConfig = loadConnectionConfig();
       console.log('⏳ Connecting to SQL Server instance...');
       
       // Instantiate and connect the global database connection pool
@@ -52,23 +63,23 @@ class MyService {
   /**
    * Guarded method to fetch products from the real database.
    */
-  async GetProducts() {
-    // Safety Guard: Fail early if the user called this method before init()
-    if (!this.pool) {
-      throw new Error(
-        'Database connection not initialized! You must run and await MyService.init() before calling GetProducts().'
-      );
-    }
+//   async GetProducts() {
+//     // Safety Guard: Fail early if the user called this method before init()
+//     if (!this.pool) {
+//       throw new Error(
+//         'Database connection not initialized! You must run and await MyService.init() before calling GetProducts().'
+//       );
+//     }
 
-    try {
-      // Execute the query safely using the active connection pool
-      const result = await this.pool.request().query('SELECT top 10 productname FROM tblProduct');
-      return result.recordset.map(row => row.name);
-    } catch (error) {
-      console.error('Database query error in GetProducts:', error.message);
-      throw error;
-    }
-  }
+//     try {
+//       // Execute the query safely using the active connection pool
+//       const result = await this.pool.request().query('SELECT top 10 productname FROM tblProduct');
+//       return result.recordset.map(row => row.name);
+//     } catch (error) {
+//       console.error('Database query error in GetProducts:', error.message);
+//       throw error;
+//     }
+//   }
 
   /**
    * Helper to clean up connections after your test runner completes
@@ -81,15 +92,15 @@ class MyService {
     }
   }
 
-  async streamProducts(chunk, finish, error) {
-    return this.executeSql(
-      'SELECT TOP 10 ProductID, ProductCode, ProductName FROM tblProduct WHERE IsInternal = 1 ORDER BY ProductID DESC',
-      [],
-      chunk,
-      finish,
-      error
-    );
-  }
+//   async streamProducts(chunk, finish, error) {
+//     return this.executeSql(
+//       'SELECT TOP 10 ProductID, ProductCode, ProductName FROM tblProduct WHERE IsInternal = 1 ORDER BY ProductID DESC',
+//       [],
+//       chunk,
+//       finish,
+//       error
+//     );
+//   }
 
   async executeScalar(sqlText, params = []) {
     const rows = await this.executeSql(sqlText, params);

@@ -31,69 +31,28 @@ contextBridge.exposeInMainWorld(
       console.log(`ipcRenderer.invoke('api:getTime') being called: it's a ${typeof ipcRenderer.invoke}`);
       return ipcRenderer.invoke('api:getTime'); // This returns a Promise that resolves with the result from the main process
     },
-    streamProducts: (onChunk, onComplete, onError) => {
-        const listener = (event, result) => {
-          if (result.error) {
-            onError?.(result.error);
-            ipcRenderer.off('stream-chunk', listener);
-          } else if (result.done) {
-            onComplete?.();
-            ipcRenderer.off('stream-chunk', listener);
-          } else {
-            onChunk?.(result.data);
-          }
-        };
 
-        ipcRenderer.on('api:stream-products', listener);
-        ipcRenderer.send('api:stream-products', 'products');
-    },
-    streamData: (onChunk, onComplete, onError, dataType) => {
-      const listener = (event, result) => {
-        if(result.error){
-          onError?.(result.error);
-          ipcRenderer.off('api:stream-data', listener);
-        }else if (result.done) {
-          onComplete?.();
-          ipcRenderer.off('api:stream-data', listener);
+    streamData: (onChunk, onComplete, onError, dataType, filter) => {
+      const channelGuid = String(crypto.randomUUID());
+      console.log(`set channelGuid ${channelGuid}`);
+      const listener = (event, result, guid) => {
+        if((!result?.guid) || (result?.guid === channelGuid)){ //only handle this if it's YOUR guid
+          if(result.error){
+            onError?.(result.error);
+            ipcRenderer.off('api:stream-data', listener);
+          }else if (result.done) {
+            onComplete?.();
+            ipcRenderer.off('api:stream-data', listener);
+          }else{
+              console.log(`listener heard: ${JSON.stringify(result)}. result.guid is ${String(result.guid)}. ${String(result.guid) == String(channelGuid) ? 'match!' : 'not match'}`)
+              onChunk?.(result.data);
+          }
         }else{
-          onChunk?.(result.data);
+          console.log(`GUID invalid: ${result?.guid} != ${guid}`)
         }
       }
       ipcRenderer.on('api:stream-data', listener);
-      ipcRenderer.send('api:stream-data', 'dataType');
-    },
-
-// Pass a standard callback function instead of using an async generator here
-  onStreamUpdate: (onChunk, onComplete, onError, dataType) => {
-    // Create a listener function
-    const listener = (event, result) => {
-      if (result.error) {
-        onError(result.error);
-        ipcRenderer.off('stream-chunk', listener); // Clean up listener
-      } else if (result.done) {
-        onComplete();
-        ipcRenderer.off('stream-chunk', listener); // Clean up listener
-      } else {
-        let data = typeof result.data === 'object' ? JSON.stringify(result.data): result.data ;
-        onChunk(data);
-      }
-    };
-      ipcRenderer.on('stream-chunk', listener);
-      ipcRenderer.send('start-stream', dataType);      
-    },
-
-    startStreamUpdate: () => {
-      ipcRenderer.send('start-stream');    
-    },
-
-    sendCustomMessage: (message) => {
-      ipcRenderer.send('api:sendMessage', message);
-    },
-
-    sendTimer: (callback) => {
-      ipcRenderer.on('api:clockTime', (event, time) => {
-        callback(time);
-      });
+      ipcRenderer.send('api:stream-data', dataType, filter, channelGuid);
     },
 
     onMyTimer: (callback) => { ipcRenderer.on('api:myClockTime', (event, time) => {

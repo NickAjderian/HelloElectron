@@ -6,7 +6,10 @@ const streamOrganisationsButton = document.getElementById('streamOrganisations')
 const sendButton = document.getElementById('send');
 const inputElement = window.document.getElementById('input')
 const timerDisplayElement = window.document.getElementById('myTimer');
+const selectProduct = window.document.getElementById('productDropdown')
+const ingredientInfo = window.document.getElementById('ingredientInfo');
 
+const msdsInfo = window.document.getElementById('msdsInfo');
 //alert('hello from renderer.js');
 
 let info = '';
@@ -49,6 +52,66 @@ function runLogStream() {
     );
 };
 
+function onStreamProductsClick(){
+    selectProduct.innerHTML = '';
+    window.electronAPI.streamData(
+        product => {
+            // console.log("Product:", product);
+            // info += `<br/>${JSON.stringify(product)}`;
+            const newOption = new Option(product.ProductCode, product.ProductID)
+            selectProduct.add(newOption);
+        },
+        () => {
+            console.log("Stream complete")
+            information.innerHTML = info;
+        },
+        error => console.error("Stream failed:", error),
+        'products'
+        );
+}
+
+function onSelectProduct(){
+    const ProductID = selectProduct.value;
+    console.log(`you chose ${ProductID}`);
+    msdsInfo.innerHTML = '';
+    let ingredientInfoString = '';
+    let msdsInfoString = '';
+    window.electronAPI.streamData(
+        //onChunk
+        ingredient => {
+            console.log("Ingredient:", ingredient);
+            ingredientInfoString += `<br/><strong>${ingredient.ProductCode}</strong>  ${ingredient.ProductName}  ${ingredient.Percentage}%`;
+        },
+        //onFinished
+        () => {
+            ingredientInfo.innerHTML = ingredientInfoString;
+            console.log("Stream complete")
+
+                window.electronAPI.streamData(
+                    msds => {
+                        console.log("MSDS:", msds);
+                        for(const [fieldName, fieldValue] of Object.entries(msds)){
+                            msdsInfoString += `<br/><strong>${fieldName}</strong>`
+                                + `<br/>${fieldValue}`;
+                        }
+                    },
+                    () => {
+                        console.log("Stream complete")
+                        msdsInfo.innerHTML = msdsInfoString;
+                    },
+                    error => console.error("Stream failed:", error),
+                        
+                    'msds',
+                    [{name: 'ProductID', value: ProductID}]
+                );                    
+        },
+        //onError
+        error => console.error("Stream failed:", error),   
+            'ingredients',
+            [{name: 'ProductID', value: ProductID}]
+    );
+
+}
 
 window.setTimeout(async () => {
     console.log(`window.electronAPI.getTime() being called: it's a ${typeof window.electronAPI.getTime} and window.electronAPI is a ${typeof window.electronAPI}`);
@@ -63,19 +126,30 @@ window.setTimeout(async () => {
 
     streamProductsButton.addEventListener('click', 
         ()=> {
-            window.electronAPI.streamProducts(
-                product => {
-                    console.log("Product:", product);
-                    info += `<br/>${JSON.stringify(product)}`;
-                },
-                () => {
-                    console.log("Stream complete")
-                    information.innerHTML = info;
-                },
-                error => console.error("Stream failed:", error)
-                );
+            onStreamProductsClick();
         }
-        )
+        );
+        
+    streamOrganisationsButton.addEventListener('click', 
+        ()=> {
+            window.electronAPI.streamData(
+            organisation => {
+                console.log("Organisation:", organisation);
+                info += `<br/>${JSON.stringify(organisation)}`;
+            },
+            () => {
+                console.log("Stream complete")
+                information.innerHTML = info;
+            },
+            error => console.error("Stream failed:", error),
+            'organisations'
+            );
+        }
+        );
+    selectProduct.addEventListener('change',()=>{
+        onSelectProduct();
+    });
+    onStreamProductsClick();
     }
 , 1000);
 

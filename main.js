@@ -60,7 +60,7 @@ var win;
 
 const createWindow = () => {
   win = new BrowserWindow({
-    width: 400,
+    width: 1000,
     height: 600,
     webPreferences: {
         sandbox: false,
@@ -113,28 +113,65 @@ app.whenReady().then(() => {
     //     console.log(`Received message from renderer: ${message}`);
     // });
 
-    ipcMain.handle('api:stream-products', ()=>{
-      console.log('wtf is going on');
-    })
-
-    ipcMain.on('api:stream-products', (event, datatype)=>{
-      MyService.executeSql('select top 10 ProductID, ProductCode from tblProduct',
-        [],
-        (chunk) =>event.reply('api:stream-products', { data: chunk, done: false }),
-        (result)=>event.reply('api:stream-products', { done: true }),
-        (err)=>event.reply('api:stream-products', { error: err.message, done: true })
-      )
-
-    });
-
-    ipcMain.on('api:stream-data', (event, dataType)=>{
+    ipcMain.on('api:stream-data', (
+        event
+        , dataType
+        , filter //array of parameters
+        , guid
+      )=>{
+      console.log(`got a requiest to return rows flagged with guid ${guid || 'NOT SET'}`);
+      let channelId = 'api:stream-data';
+      let sql = '';
       switch(dataType){
+        case 'products':
+        case 'product':
+          MyService.executeSql('select top 10 ProductID, ProductCode from tblProduct',
+            [],
+            (chunk) =>{
+              console.log(`returning a chunk flagged with guid ${guid || 'NOT SET'}`)
+              event.reply(channelId, { data: chunk, done: false, guid: guid })
+
+            },
+            (result)=>event.reply(channelId, { done: true, guid: guid }),
+            (err)=>event.reply(channelId, { error: err.message, done: true, guid: guid })
+          )
+          break;
         case 'organisations':
+        case 'organisation':
           MyService.executeSql('select top 10 OrganisationID, Organisation from tblOrganisation',
             [],
-            (chunk) =>event.reply('api:stream-data', { data: chunk, done: false }),
-            (result)=>event.reply('api:stream-data', { done: true }),
-            (err)=>event.reply('api:stream-data', { error: err.message, done: true })
+            (chunk) =>event.reply(channelId, { data: chunk, done: false, guid: guid }),
+            (result)=>event.reply(channelId, { done: true, guid: guid }),
+            (err)=>event.reply(channelId, { error: err.message, done: true, guid: guid })
+          )
+          break;
+        case 'ingredients':
+        case 'ingredient':
+          sql=`select p.ProductID
+            ,i.ProductID IngredientID, i.ProductCode, i.ProductName, rd.Percentage
+            from tblProduct p
+            inner join manRecipeDetail rd on p.ProductID=rd.ProductID
+            inner join tblProduct i on rd.RawMaterialID=i.ProductID
+            where i.IsDeleted = 0 and rd.IsDeleted = 0
+            and (p.ProductID=@ProductID or @ProductID is null)
+            order by rd.Sequence, i.ProductCode
+            `;
+          MyService.executeSql(sql,
+            filter,
+            (chunk) =>event.reply(channelId, { data: chunk, done: false, guid: guid }),
+            (result)=>event.reply(channelId, { done: true }),
+            (err)=>event.reply(channelId, { error: err.message, done: true, guid: guid })
+          )
+          break;
+        case 'msds':
+          sql=`select * from tblMSDS
+            where (ProductID=@ProductID or @ProductID is null)
+            `;
+          MyService.executeSql(sql,
+            filter,
+            (chunk) =>event.reply(channelId, { data: chunk, done: false, guid: guid }),
+            (result)=>event.reply(channelId, { done: true, guid: guid }),
+            (err)=>event.reply(channelId, { error: err.message, done: true, guid: guid })
           )
           break;
       }
