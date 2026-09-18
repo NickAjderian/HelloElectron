@@ -5,6 +5,7 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { getLogFile, log } from './logger.js';
+import autoUpdater from 'electron-updater';
 const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
 const __dirname = path.dirname(__filename); // get the name of the directory
 
@@ -110,6 +111,10 @@ app.whenReady().then(() => {
     process.on('uncaughtException', error => log('ERROR', 'Uncaught exception.', error));
     process.on('unhandledRejection', error => log('ERROR', 'Unhandled promise rejection.', error));
     log('INFO', `Application started. Logs: ${getLogFile()}`);
+
+    () =>{
+      autoUpdater.checkForUpdatesAndNotify();
+    }
 
     MyService.init().catch(error => {
       log('ERROR', 'Database initialization failed.', error);

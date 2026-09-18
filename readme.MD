@@ -31,4 +31,9 @@ The renderer can call it through the preload bridge:
 
 ```javascript
 const products = await window.electronAPI.getProducts();
+
+To publish a new version...
+Increment the version in your package.json (e.g., change 1.0.0 to 1.0.1).
+set GH_TOKEN="github_pat_11AB4
+Run the release command in your terminal:bashnpm run release
 ```
