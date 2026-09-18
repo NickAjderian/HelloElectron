@@ -1,0 +1,38 @@
+name: Build and Release Electron App
+
+on:
+  push:
+    tags:
+      - 'v*' # Triggers the workflow only when you push a tag starting with 'v' (e.g., v1.0.0)
+
+jobs:
+  release:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        # This builds both Windows and Mac versions simultaneously
+        os: [windows-latest, macos-latest]
+
+    # This fixes the 403 permission error you saw earlier
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/checkout@v4
+        with:
+          node-version: 20 # Adjust to your local Node version if needed
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build and Publish Electron App
+        run: npm run release
+        env:
+          # GitHub automatically creates this token for the build runner
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
