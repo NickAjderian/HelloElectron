@@ -4,6 +4,7 @@ import MyService from './MyService.js';
 import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { getLogFile, log } from './logger.js';
 const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
 const __dirname = path.dirname(__filename); // get the name of the directory
 
@@ -106,7 +107,13 @@ function getTime(event, request) {
   //});
 
 app.whenReady().then(() => {
-    MyService.init();
+    process.on('uncaughtException', error => log('ERROR', 'Uncaught exception.', error));
+    process.on('unhandledRejection', error => log('ERROR', 'Unhandled promise rejection.', error));
+    log('INFO', `Application started. Logs: ${getLogFile()}`);
+
+    MyService.init().catch(error => {
+      log('ERROR', 'Database initialization failed.', error);
+    });
 
     ipcMain.handle('api:getTime', getTime); //getTime is an async function that returns a Promise, so ipcMain.handle will automatically handle the Promise resolution and rejection for you.
     // ipcMain.on('api:sendMessage', (event, message) => {

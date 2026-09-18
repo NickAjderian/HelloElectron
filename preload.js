@@ -44,7 +44,6 @@ contextBridge.exposeInMainWorld(
             onComplete?.();
             ipcRenderer.off('api:stream-data', listener);
           }else{
-              console.log(`listener heard: ${JSON.stringify(result)}. result.guid is ${String(result.guid)}. ${String(result.guid) == String(channelGuid) ? 'match!' : 'not match'}`)
               onChunk?.(result.data);
           }
         }else{

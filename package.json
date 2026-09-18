@@ -1,6 +1,6 @@
 {
   "name": "helloelectron",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "my first electron app",
   "keywords": [
     "electron",
@@ -20,21 +20,38 @@
   "main": "main.js",
   "scripts": {
     "test": "node test",
-    "start": "electron .",
+    "start": "electron-forge start",
     "build": "electron-builder --dir",
-    "dist": "electron-builder"
+    "release": "electron-builder --publish always",
+    "dist": "electron-builder",
+    "package": "electron-forge package",
+    "make": "electron-forge make"
   },
   "devDependencies": {
-    "electron": "^44.3.0",
-    "electron-builder": "^26.15.3"
+    "@electron-forge/cli": "^7.11.2",
+    "@electron-forge/maker-deb": "^7.11.2",
+    "@electron-forge/maker-rpm": "^7.11.2",
+    "@electron-forge/maker-squirrel": "^7.11.2",
+    "@electron-forge/maker-zip": "^7.11.2",
+    "@electron-forge/plugin-auto-unpack-natives": "^7.11.2",
+    "@electron-forge/plugin-fuses": "^7.11.2",
+    "@electron/fuses": "^1.8.0",
+    "electron": "^44.3.0"
   },
   "dependencies": {
+    "electron-squirrel-startup": "^1.0.1",
     "mssql": "^12.7.2",
     "tedious": "^20.0.0"
   },
   "build": {
-    "appId": "com.example.helloelectron",
+    "appId": "net.flikk.helloelectron",
     "productName": "HelloElectron",
+    "publish" :{
+      "provider": "github",
+      "owner": "nickajderian",
+      "repo": "helloelectron"
+
+    },
     "directories": {
       "output": "dist"
     },

@@ -1,0 +1,15 @@
+{
+  "server": "localhost",
+  "database": "MyDatabase",
+  "authentication": {
+    "type": "default",
+    "options": {
+      "userName": "mysecretusername",
+      "password": "Password"
+    }
+  },
+  "options": {
+    "encrypt": false,
+    "trustServerCertificate": true
+  }
+}

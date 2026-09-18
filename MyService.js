@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import sql from 'mssql';
+import { log } from './logger.js';
 
 const moduleDirectory = path.dirname(fileURLToPath(import.meta.url));
 
@@ -21,6 +22,7 @@ function loadConnectionConfig() {
   }
 
   try {
+    log('INFO', `Loading database settings from ${settingsPath}`);
     return JSON.parse(readFileSync(settingsPath, 'utf8'));
   } catch (error) {
     throw new Error(`Cannot load ${settingsPath}: ${error.message}`);
@@ -44,15 +46,15 @@ class MyService {
 
     try {
       this.poolConfig = loadConnectionConfig();
-      console.log('⏳ Connecting to SQL Server instance...');
+      log('INFO', `Connecting to SQL Server instance at ${this.poolConfig.server}/${this.poolConfig.database}`);
       
       // Instantiate and connect the global database connection pool
       this.pool = await sql.connect(this.poolConfig);
       
-      console.log('✅ SQL Server database connection established and ready.');
+      log('INFO', 'SQL Server database connection established and ready.');
       return this;
     } catch (error) {
-      console.error('❌ SQL Server connection failed:', error.message);
+      log('ERROR', 'SQL Server connection failed.', error);
       this.pool = null;
       throw error;
     }
@@ -159,6 +161,7 @@ class MyService {
 
         return rows;
       } catch (queryError) {
+        log('ERROR', `Database query failed: ${sqlText}`, queryError);
         if (error) {
           error(queryError);
         }
