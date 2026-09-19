@@ -5,6 +5,7 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { getLogFile, log } from './logger.js';
+import updateElectronApp, { UpdateSourceType } from 'update-electron-app';
 
 const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
 const __dirname = path.dirname(__filename); // get the name of the directory
@@ -73,6 +74,19 @@ const createWindow = () => {
   })
 
   win.loadFile('index.html')
+
+  try{
+    updateElectronApp({
+      updateSource:{
+        type: UpdateSourceType.ElectronPublicUpdateService,
+        repo: "https://github.com/NickAjderian/HelloElectron.git"
+      },
+      updateInterval: '1 hour'
+    });
+  }catch(error){
+    console.error(error.message + ' updating app');
+  }
+
 }
 
 function getTime(event, request) {

@@ -1,6 +1,6 @@
 {
   "name": "helloelectron",
-  "version": "1.0.3",
+  "version": "1.0.7",
   "description": "my first electron app",
   "keywords": [
     "electron",
@@ -42,7 +42,8 @@
   "dependencies": {
     "electron-squirrel-startup": "^1.0.1",
     "mssql": "^12.7.2",
-    "tedious": "^20.0.0"
+    "tedious": "^20.0.0",
+    "update-electron-app": "^3.3.0"
   },
   "build": {
     "appId": "net.flikk.helloelectron",
