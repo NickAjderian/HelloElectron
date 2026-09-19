@@ -54,7 +54,7 @@ function runLogStream() {
 
 function onStreamProductsClick(){
     selectProduct.innerHTML = '';
-    window.electronAPI.streamData(
+    window.electronAPI.streamData( 'products',[],
         product => {
             // console.log("Product:", product);
             // info += `<br/>${JSON.stringify(product)}`;
@@ -65,8 +65,7 @@ function onStreamProductsClick(){
             console.log("Stream complete")
             information.innerHTML = info;
         },
-        error => console.error("Stream failed:", error),
-        'products'
+        error => console.error("Stream failed:", error)       
         );
 }
 
@@ -76,7 +75,8 @@ function onSelectProduct(){
     msdsInfo.innerHTML = '';
     let ingredientInfoString = '';
     let msdsInfoString = '';
-    window.electronAPI.streamData(
+    window.electronAPI.streamData('ingredients',
+            [{name: 'ProductID', value: ProductID}],
         //onChunk
         ingredient => {
             console.log("Ingredient:", ingredient);
@@ -88,6 +88,8 @@ function onSelectProduct(){
             console.log("Stream complete")
 
                 window.electronAPI.streamData(
+                    'msds',                    
+                    [{name: 'ProductID', value: ProductID}],
                     msds => {
                         console.log("MSDS:", msds);
                         for(const [fieldName, fieldValue] of Object.entries(msds)){
@@ -99,16 +101,11 @@ function onSelectProduct(){
                         console.log("Stream complete")
                         msdsInfo.innerHTML = msdsInfoString;
                     },
-                    error => console.error("Stream failed:", error),
-                        
-                    'msds',
-                    [{name: 'ProductID', value: ProductID}]
+                    error => console.error("Stream failed:", error)
                 );                    
         },
         //onError
-        error => console.error("Stream failed:", error),   
-            'ingredients',
-            [{name: 'ProductID', value: ProductID}]
+        error => console.error("Stream failed:", error)            
     );
 
 }
@@ -132,7 +129,7 @@ window.setTimeout(async () => {
         
     streamOrganisationsButton.addEventListener('click', 
         ()=> {
-            window.electronAPI.streamData(
+            window.electronAPI.streamData('organisations',[],
             organisation => {
                 console.log("Organisation:", organisation);
                 info += `<br/>${JSON.stringify(organisation)}`;
@@ -142,7 +139,7 @@ window.setTimeout(async () => {
                 information.innerHTML = info;
             },
             error => console.error("Stream failed:", error),
-            'organisations'
+            
             );
         }
         );

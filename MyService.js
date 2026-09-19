@@ -141,6 +141,7 @@ class MyService {
         request.stream = Boolean(chunk);
 
         if (chunk) {
+          console.log(`returning a chunk of ${sqlText.substring(0,30)}`)
           request.on('row', chunk);
         }
 
@@ -156,12 +157,13 @@ class MyService {
         const rows = result.recordset ?? [];
 
         if (finish) {
+          console.log(`finishing request for ${sqlText.substring(0,30)}`)
           finish(result);
         }
 
         return rows;
       } catch (queryError) {
-        log('ERROR', `Database query failed: ${sqlText}`, queryError);
+        console.log(`error ${queryError.message} in request for ${sqlText.substring(0,30)}`)
         if (error) {
           error(queryError);
         }

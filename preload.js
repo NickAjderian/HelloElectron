@@ -32,7 +32,7 @@ contextBridge.exposeInMainWorld(
       return ipcRenderer.invoke('api:getTime'); // This returns a Promise that resolves with the result from the main process
     },
 
-    streamData: (onChunk, onComplete, onError, dataType, filter) => {
+    streamData: (dataType, filter,onChunk, onComplete, onError ) => {
       const channelGuid = String(crypto.randomUUID());
       console.log(`set channelGuid ${channelGuid}`);
       const listener = (event, result, guid) => {

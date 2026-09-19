@@ -5,7 +5,7 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { getLogFile, log } from './logger.js';
-import autoUpdater from 'electron-updater';
+
 const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
 const __dirname = path.dirname(__filename); // get the name of the directory
 
@@ -111,11 +111,7 @@ app.whenReady().then(() => {
     process.on('uncaughtException', error => log('ERROR', 'Uncaught exception.', error));
     process.on('unhandledRejection', error => log('ERROR', 'Unhandled promise rejection.', error));
     log('INFO', `Application started. Logs: ${getLogFile()}`);
-
-    () =>{
-      autoUpdater.checkForUpdatesAndNotify();
-    }
-
+    
     MyService.init().catch(error => {
       log('ERROR', 'Database initialization failed.', error);
     });
@@ -140,21 +136,38 @@ app.whenReady().then(() => {
           MyService.executeSql('select top 10 ProductID, ProductCode from tblProduct',
             [],
             (chunk) =>{
-              console.log(`returning a chunk flagged with guid ${guid || 'NOT SET'}`)
-              event.reply(channelId, { data: chunk, done: false, guid: guid })
+              console.log(`returning a chunk of ${dataType} flagged with guid ${guid || 'NOT SET'}`);
+              event.reply(channelId, { data: chunk, done: false, guid: guid });
 
             },
-            (result)=>event.reply(channelId, { done: true, guid: guid }),
-            (err)=>event.reply(channelId, { error: err.message, done: true, guid: guid })
+            (result)=>{
+              console.log(`finished returning ${dataType} flagged with guid ${guid || 'NOT SET'}`);
+              event.reply(channelId, {data:result, done: true, guid: guid });
+            },
+            (err)=>{
+              console.log(`error ${err.message} returning ${dataType} flagged with guid ${guid || 'NOT SET'}`);
+              event.reply(channelId, { error: err.message, done: true, guid: guid });
+            }
           )
           break;
         case 'organisations':
         case 'organisation':
           MyService.executeSql('select top 10 OrganisationID, Organisation from tblOrganisation',
             [],
-            (chunk) =>event.reply(channelId, { data: chunk, done: false, guid: guid }),
-            (result)=>event.reply(channelId, { done: true, guid: guid }),
-            (err)=>event.reply(channelId, { error: err.message, done: true, guid: guid })
+            (chunk) =>{
+              console.log(`returning a chunk of ${dataType} flagged with guid ${guid || 'NOT SET'}`);
+              event.reply(channelId, { data: chunk, done: false, guid: guid });
+
+            },
+            (result)=>{
+              console.log(`finished returning ${dataType} flagged with guid ${guid || 'NOT SET'}`);
+              event.reply(channelId, {data:result, done: true, guid: guid });
+            },
+            (err)=>{
+              console.log(`error ${err.message} returning ${dataType} flagged with guid ${guid || 'NOT SET'}`);
+              event.reply(channelId, { error: err.message, done: true, guid: guid });
+            }
+
           )
           break;
         case 'ingredients':
@@ -170,9 +183,20 @@ app.whenReady().then(() => {
             `;
           MyService.executeSql(sql,
             filter,
-            (chunk) =>event.reply(channelId, { data: chunk, done: false, guid: guid }),
-            (result)=>event.reply(channelId, { done: true }),
-            (err)=>event.reply(channelId, { error: err.message, done: true, guid: guid })
+            (chunk) =>{
+              console.log(`returning a chunk of ${dataType} flagged with guid ${guid || 'NOT SET'}`);
+              event.reply(channelId, { data: chunk, done: false, guid: guid });
+
+            },
+            (result)=>{
+              console.log(`finished returning ${dataType} flagged with guid ${guid || 'NOT SET'}`);
+              event.reply(channelId, {data:result, done: true, guid: guid });
+            },
+            (err)=>{
+              console.log(`error ${err.message} returning ${dataType} flagged with guid ${guid || 'NOT SET'}`);
+              event.reply(channelId, { error: err.message, done: true, guid: guid });
+            }
+
           )
           break;
         case 'msds':
@@ -181,9 +205,20 @@ app.whenReady().then(() => {
             `;
           MyService.executeSql(sql,
             filter,
-            (chunk) =>event.reply(channelId, { data: chunk, done: false, guid: guid }),
-            (result)=>event.reply(channelId, { done: true, guid: guid }),
-            (err)=>event.reply(channelId, { error: err.message, done: true, guid: guid })
+            (chunk) =>{
+              console.log(`returning a chunk of ${dataType} flagged with guid ${guid || 'NOT SET'}`);
+              event.reply(channelId, { data: chunk, done: false, guid: guid });
+
+            },
+            (result)=>{
+              console.log(`finished returning ${dataType} flagged with guid ${guid || 'NOT SET'}`);
+              event.reply(channelId, {data:result, done: true, guid: guid });
+            },
+            (err)=>{
+              console.log(`error ${err.message} returning ${dataType} flagged with guid ${guid || 'NOT SET'}`);
+              event.reply(channelId, { error: err.message, done: true, guid: guid });
+            }
+
           )
           break;
       }
