@@ -24,7 +24,7 @@ if (typeof myUserInfo === 'undefined') {
 if(typeof versions === 'undefined') {
     info += `versions - undefined`;
 }else{
-    info += `<br/>This app is version ${versions.appVersion} using Chrome (v${versions.chrome()}), Node.js (v${versions.node()}), and Electron (v${versions.electron()})`
+    info += `<br/>This app is version 1.0.6 using Chrome (v${versions.chrome()}), Node.js (v${versions.node()}), and Electron (v${versions.electron()})`
 }
 
 if(typeof curses === 'undefined') {

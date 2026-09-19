@@ -12,7 +12,8 @@ jobs:
     strategy:
       matrix:
         # This builds both Windows and Mac versions simultaneously
-        os: [windows-latest, macos-latest]
+        #]os: [windows-latest, macos-latest]
+        os: [windows-latest]
 
     # This fixes the 403 permission error you saw earlier
     permissions:
@@ -25,7 +26,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/checkout@v4
         with:
-          node-version: 20 # Adjust to your local Node version if needed
+          node-version: 22 # Adjust to your local Node version if needed
           cache: 'npm'
 
       - name: Install Dependencies
