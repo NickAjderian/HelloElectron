@@ -9,7 +9,9 @@ const timerDisplayElement = window.document.getElementById('myTimer');
 const selectProduct = window.document.getElementById('productDropdown')
 const ingredientInfo = window.document.getElementById('ingredientInfo');
 
+
 const msdsInfo = window.document.getElementById('msdsInfo');
+
 //alert('hello from renderer.js');
 
 let info = '';
@@ -19,11 +21,10 @@ if (typeof myUserInfo === 'undefined') {
     info = `Hello, ${myUserInfo?.username || 'blank user'}!`;
 }
 
-
 if(typeof versions === 'undefined') {
     info += `versions - undefined`;
 }else{
-    info += `<br/>This app is using Chrome (v${versions.chrome()}), Node.js (v${versions.node()}), and Electron (v${versions.electron()})`
+    info += `<br/>This app is version ${versions.appVersion} using Chrome (v${versions.chrome()}), Node.js (v${versions.node()}), and Electron (v${versions.electron()})`
 }
 
 if(typeof curses === 'undefined') {
@@ -55,6 +56,7 @@ function runLogStream() {
 function onStreamProductsClick(){
     selectProduct.innerHTML = '';
     window.electronAPI.streamData(
+        'products', null,
         product => {
             // console.log("Product:", product);
             // info += `<br/>${JSON.stringify(product)}`;
@@ -66,8 +68,13 @@ function onStreamProductsClick(){
             information.innerHTML = info;
         },
         error => console.error("Stream failed:", error),
-        'products'
+        
         );
+}
+
+async function onGetVersionNumber(){
+    var v = await window.electronAPI.executeScalar('GET_APP_VERSION');   
+    alert(v);
 }
 
 function onSelectProduct(){
@@ -76,7 +83,9 @@ function onSelectProduct(){
     msdsInfo.innerHTML = '';
     let ingredientInfoString = '';
     let msdsInfoString = '';
-    window.electronAPI.streamData(
+    window.electronAPI.streamData(   
+            'ingredients',
+            [{name: 'ProductID', value: ProductID}],
         //onChunk
         ingredient => {
             console.log("Ingredient:", ingredient);
@@ -106,9 +115,7 @@ function onSelectProduct(){
                 );                    
         },
         //onError
-        error => console.error("Stream failed:", error),   
-            'ingredients',
-            [{name: 'ProductID', value: ProductID}]
+        error => console.error("Stream failed:", error)
     );
 
 }
@@ -132,6 +139,8 @@ window.setTimeout(async () => {
         
     streamOrganisationsButton.addEventListener('click', 
         ()=> {
+            'organisations',
+            null,
             window.electronAPI.streamData(
             organisation => {
                 console.log("Organisation:", organisation);
@@ -142,7 +151,7 @@ window.setTimeout(async () => {
                 information.innerHTML = info;
             },
             error => console.error("Stream failed:", error),
-            'organisations'
+            
             );
         }
         );

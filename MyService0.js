@@ -26,13 +26,13 @@ class MyService{
     }
 
     async streamProducts(chunk, finished, error){
-        return this.streamData(chunk, finished, error, `select top 5 ProductID, ProductCode from Chilli_PEx.dbo.tblProduct where IsInternal=1 order by ProductID desc`)
+        return this.streamData(`select top 5 ProductID, ProductCode from Chilli_PEx.dbo.tblProduct where IsInternal=1 order by ProductID desc`, null, chunk, finished, error )
     }
     async streamOrganisations(chunk, finished, error){
-        return this.streamData(chunk,finished,error,'select top 5 organisationid, organisation from tblOrganisation');
+        return this.streamData('select top 5 organisationid, organisation from tblOrganisation', null, chunk,finished,error,);
     }
 
-    async streamData(chunk, finished, error, query){
+    async streamData(query, params, chunk, finished, error ){
 
         // for(var i = 1; i<5; ++i){
         //     chunk({name: 'product', id: i});

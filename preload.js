@@ -1,11 +1,14 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import os from 'os';
 
+
 let userInfo = os.userInfo();
+//let appVersion = app.getVersion();
 
 //console.log(`we are in preload.js`);
 
 //alert('hello from preload.js');
+
 
 let myUserInfo =  {
   username: userInfo.username,
@@ -16,6 +19,7 @@ let myUserInfo =  {
 contextBridge.exposeInMainWorld('myUserInfo', myUserInfo);
 
 contextBridge.exposeInMainWorld('versions', {
+  appVersion: () => appVersion,
   node: () => process.versions.node,
   chrome: () => process.versions.chrome,
   electron: () => process.versions.electron
@@ -32,7 +36,7 @@ contextBridge.exposeInMainWorld(
       return ipcRenderer.invoke('api:getTime'); // This returns a Promise that resolves with the result from the main process
     },
 
-    streamData: (onChunk, onComplete, onError, dataType, filter) => {
+    streamData: (dataType, filter, onChunk, onComplete, onError ) => {
       const channelGuid = String(crypto.randomUUID());
       console.log(`set channelGuid ${channelGuid}`);
       const listener = (event, result, guid) => {

@@ -41,8 +41,10 @@
   },
   "dependencies": {
     "electron-squirrel-startup": "^1.0.1",
+    "msnodesqlv8": "^5.5.0",
     "mssql": "^12.7.2",
-    "tedious": "^20.0.0"
+    "tedious": "^20.0.0",
+    "update-electron-app": "^3.3.0"
   },
   "build": {
     "appId": "net.flikk.helloelectron",

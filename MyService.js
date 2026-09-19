@@ -23,7 +23,8 @@ function loadConnectionConfig() {
 
   try {
     log('INFO', `Loading database settings from ${settingsPath}`);
-    return JSON.parse(readFileSync(settingsPath, 'utf8'));
+    var dbConfig = JSON.parse(readFileSync(settingsPath, 'utf8'));    
+    return dbConfig;
   } catch (error) {
     throw new Error(`Cannot load ${settingsPath}: ${error.message}`);
   }
@@ -104,12 +105,17 @@ class MyService {
 //     );
 //   }
 
-  async executeScalar(sqlText, params = []) {
-    const rows = await this.executeSql(sqlText, params);
+  async executeScalar(sqlText, params = [], chunk, finish, error) {
+
+    if(sqlText=='APP_VERSION'){
+      return 'some version';
+    }
+
+    const rows = await this.executeSql(sqlText, params, chunk, finish, error);
     const firstRow = rows[0];
 
     if (!firstRow) {
-      return undefined;
+      if(chunk) chunk('undefined');
     }
 
     return Object.values(firstRow)[0];
@@ -175,148 +181,6 @@ class MyService {
 //     return TYPES;
 //   }
 
-//   /**
-//    * Initializes the singleton with database configurations.
-//    */
-//   init(config) {
-//     if (this.connection) return;
-//     this.config = config;
-//     this.connect();
-//   }
-
-//     async getTime(){
-//         return new Date().toLocaleTimeString();
-//     }
-
-//     async streamProducts(chunk, finished, error){
-//         return this.executeSql(`select top 5 ProductID, ProductCode from Chilli_PEx.dbo.tblProduct where IsInternal=1 order by ProductID desc`, [], chunk, finished, error )
-//     }
-//     async streamOrganisations(chunk, finished, error){
-//         return this.streamData('select top 5 organisationid, organisation from tblOrganisation', [], chunk,finished,error);
-//     }
-
-// initSync() {
-//     if (this.isInitialized) {
-//       return this; // Already initialized
-//     }
-
-//     console.log('Connecting to service resources synchronously...');
-    
-//     // Simulate establishing a synchronous connection (e.g., SQLite, local file, mock)
-//     this.connection = connectionConfig;
-
-//     this.isInitialized = true;
-//     return this; 
-//   }
-
-
-
-//   /**
-//    * Internal method to establish the Tedious connection
-//    */
-//   connect() {
-//     console.log('🔌 Initialising Tedious database connection...');
-//     this.connection = new Connection(this.config);
-
-//     this.connection.on('connect', (err) => {
-//       if (err) {
-//         console.error('❌ Database connection failed:', err.message);
-//         setTimeout(() => this.connect(), 5000);
-//       } else {
-//         console.log('✅ Database connection established successfully.');
-//         this.processQueue();
-//       }
-//     });
-
-//     this.connection.on('end', () => {
-//       console.log('🔌 Connection closed. Reconnecting...');
-//       this.connection = null;
-//       this.connect();
-//     });
-//   }
-
-//   /**
-//    * Executes an arbitrary SQL statement safely with parameters.
-//    * @param {string} sqlText - The SQL statement with parameters (e.g., @userId).
-//    * @param {Array<object>} [params=[]] - Optional array of parameter objects [{ name, type, value }]
-//    * @returns {Promise<Array<object>>} Resolves with rows as objects.
-//    */
-//   executeSql(sqlText, params = [], chunk, finish, error) {
-//     return new Promise((resolve, reject) => {
-//       // Add parameters to the queued execution task
-//       this.queryQueue.push({ sqlText, params, resolve, reject, chunk, finish, error });
-//       this.processQueue();
-//     });
-//   }
-
-//   /**
-//    * Internal queue processor managing sequential execution and connecting states
-//    */
-//   async processQueue() {
-//     if (this.isProcessingQueue) return;
-//     this.isProcessingQueue = true;
-
-//     if (!this?.connection?.state)
-//       this.init();
-
-//     while (this.queryQueue.length > 0) {
-//       const stateName = this.connection?.state?.name;
-
-//       // Tedious v20+ check
-//       if (stateName !== 'LoggedIn') {
-//         console.log(`⏳ Connection state is '${stateName}'. Waiting to drain queue...`);
-//         break;
-//       }
-
-//       const { sqlText, params, resolve, reject , chunk, finish, error} = this.queryQueue.shift();
-
-//       try {
-//         const rows = await this._runQueryOnSocket(sqlText, params, chunk, finish, error);
-//         resolve(rows);
-//       } catch (error) {
-//         reject(error);
-//       }
-//     }
-
-//     this.isProcessingQueue = false;
-//   }
-
-//   /**
-//    * Low-level method wrapping Tedious event lifecycle in a promise
-//    */
-//   _runQueryOnSocket(sqlText, params, chunk, finished, error) {
-//     return new Promise((resolve, reject) => {
-//       const request = new Request(sqlText, (err) => {
-//         if (err) {
-//             error(err);
-//             return reject(err);
-//         }
-//       });
-
-//       // Inject the parameters safely into the request object
-//       params.forEach(param => {
-//         request.addParameter(param.name, param.type, param.value);
-//       });
-
-//       const resultRows = [];
-
-//       request.on('row', (columns) => {
-//         const rowData = {};
-//         columns.forEach((column) => {
-//           rowData[column.metadata.colName] = column.value;
-//         });
-//         chunk(rowData);
-//         resultRows.push(rowData);
-//       });
-
-//       request.on('requestCompleted', () => {
-//         finished(resultRows);
-//         resolve(resultRows);
-//       });
-
-//       this.connection.execSql(request);
-//     });
-//   }
 }
 
 export default new MyService();
